@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  maven_test:
     name: Run Maven Tests
     runs-on: ubuntu-latest
 
