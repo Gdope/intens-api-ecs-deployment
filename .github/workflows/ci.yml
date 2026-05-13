@@ -7,9 +7,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  maven_test:
+  test:
     name: Run Maven Tests
     runs-on: ubuntu-latest
+
+    env:
+      PORT: 8080
 
     steps:
       - name: Checkout code
@@ -23,6 +26,3 @@ jobs:
 
       - name: Run tests
         run: mvn clean test
-
-      - name: Checkstyle
-        run: mvn checkstyle:checkstyle
