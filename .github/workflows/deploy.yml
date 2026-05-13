@@ -11,24 +11,25 @@ jobs:
     name: Build API, Push Docker Image and Deploy
     runs-on: ubuntu-latest
 
-    env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      ECR_REPOSITORY: ${{ secrets.ECR_REPO }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Upload image to ECR
-        uses: appleboy/docker-ecr-action@master
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          registry: ${{ secrets.REGISTRY }}
-          repo: ${{ env.ECR_REPOSITORY }}
-          region: ${{ env.AWS_REGION }}
-          auto_tag: false
-          tags: latest
-          daemon_off: false
-          dockerfile: /.Dockerfile
-          context: .
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image to ECR
+        run: |
+          ECR_REGISTRY=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+          IMAGE_URI=$ECR_REGISTRY/${{ secrets.ECR_REPO }}:latest
+
+          docker build -t ${{ secrets.ECR_REPO }}:latest .
+          docker tag ${{ secrets.ECR_REPO }}:latest $IMAGE_URI
+          docker push $IMAGE_URI
